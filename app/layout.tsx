@@ -4,14 +4,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "画图工作台",
-  description: "一个偏编辑刊物风格的对话式生图网站。",
+  description: "",
   icons: {
     icon: [
-      { url: "/favicon.png?v=3", type: "image/png", sizes: "32x32" },
-      { url: "/favicon.png?v=3", type: "image/png", sizes: "192x192" }
+      { url: "/cat-f.png?v=1", type: "image/png", sizes: "32x32" },
+      { url: "/cat-f.png?v=1", type: "image/png", sizes: "192x192" }
     ],
-    shortcut: ["/favicon.png?v=3"],
-    apple: [{ url: "/favicon.png?v=3", sizes: "180x180" }]
+    shortcut: ["/cat-f.png?v=1"],
+    apple: [{ url: "/cat-f.png?v=1", sizes: "180x180" }]
   }
 };
 
