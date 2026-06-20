@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
 
 import { imageModels, type ImageModel } from "@/lib/right-codes";
 
@@ -24,6 +24,7 @@ type StoredHistoryItem = Omit<HistoryItem, "referenceImages"> & {
 };
 
 const localStorageKey = "image-chat-studio/history";
+const promptGalleryNoticeKey = "image-chat-studio/prompt-gallery-notice";
 
 type ToastTone = "default" | "error";
 
@@ -257,6 +258,7 @@ export function ImageChatStudio() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [clearDataOpen, setClearDataOpen] = useState(false);
   const [pendingClearData, setPendingClearData] = useState(false);
+  const [promptGalleryNoticeOpen, setPromptGalleryNoticeOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -321,7 +323,7 @@ export function ImageChatStudio() {
   }, [toast]);
 
   useEffect(() => {
-    if (!historyOpen && !helpOpen && !clearDataOpen) {
+    if (!historyOpen && !helpOpen && !clearDataOpen && !promptGalleryNoticeOpen) {
       return;
     }
 
@@ -334,11 +336,12 @@ export function ImageChatStudio() {
       setHelpOpen(false);
       setClearDataOpen(false);
       setPendingClearData(false);
+      setPromptGalleryNoticeOpen(false);
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [clearDataOpen, helpOpen, historyOpen]);
+  }, [clearDataOpen, helpOpen, historyOpen, promptGalleryNoticeOpen]);
 
   const activeItem = activeId ? history.find((item) => item.id === activeId) ?? null : null;
 
@@ -520,6 +523,21 @@ export function ImageChatStudio() {
     showToast("图片数据已清理。");
   }
 
+  function handlePromptGalleryClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (window.localStorage.getItem(promptGalleryNoticeKey) === "1") {
+      return;
+    }
+
+    event.preventDefault();
+    setPromptGalleryNoticeOpen(true);
+  }
+
+  function handleOpenPromptGallery() {
+    window.localStorage.setItem(promptGalleryNoticeKey, "1");
+    setPromptGalleryNoticeOpen(false);
+    window.open("https://opennana.com/awesome-prompt-gallery", "_blank", "noopener,noreferrer");
+  }
+
   function selectHistoryItem(itemId: string) {
     setActiveId(itemId);
     setHistoryOpen(false);
@@ -563,22 +581,16 @@ export function ImageChatStudio() {
 
             <div className="ml-auto flex items-center gap-1">
               <SecondaryButton
-                className="gap-2 rounded-full bg-[color:var(--surface-soft)] px-3 text-[color:var(--text-strong)] hover:bg-[color:var(--surface-highlight)]"
+                className="min-h-9 rounded-full bg-[color:var(--surface-soft)] px-2.5 text-[13px] text-[color:var(--text-strong)] hover:bg-[color:var(--surface-highlight)] sm:min-h-10 sm:px-3 sm:text-sm"
                 onClick={() => {
                   setPendingClearData(false);
                   setHelpOpen(true);
                 }}
               >
-                <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.7]">
-                  <path d="M6.25 2.75h5.6l3.15 3.18v10.32a1 1 0 0 1-1 1H6.25a1 1 0 0 1-1-1v-12.5a1 1 0 0 1 1-1Z" />
-                  <path d="M11.75 2.75v3.2h3.2" />
-                  <path d="M7.8 9h4.4" />
-                  <path d="M7.8 12.1h4.4" />
-                </svg>
                 文档
               </SecondaryButton>
               <SecondaryButton
-                className="rounded-full px-3 text-[color:var(--status-error)] hover:bg-[color:var(--surface-soft)] hover:text-[color:var(--status-error)]"
+                className="min-h-9 rounded-full px-2.5 text-[13px] text-[color:var(--status-error)] hover:bg-[color:var(--surface-soft)] hover:text-[color:var(--status-error)] sm:min-h-10 sm:px-3 sm:text-sm"
                 onClick={() => {
                   setPendingClearData(false);
                   setClearDataOpen(true);
@@ -587,8 +599,12 @@ export function ImageChatStudio() {
                 清理数据
               </SecondaryButton>
               <div className="flex items-center gap-1 lg:hidden">
-                <SecondaryButton onClick={() => setHistoryOpen(true)}>历史</SecondaryButton>
-                <SecondaryButton onClick={resetComposer}>新建</SecondaryButton>
+                <SecondaryButton className="min-h-9 px-2.5 text-[13px] sm:min-h-10 sm:px-3 sm:text-sm" onClick={() => setHistoryOpen(true)}>
+                  历史
+                </SecondaryButton>
+                <SecondaryButton className="min-h-9 px-2.5 text-[13px] sm:min-h-10 sm:px-3 sm:text-sm" onClick={resetComposer}>
+                  新建
+                </SecondaryButton>
               </div>
             </div>
           </header>
@@ -684,6 +700,23 @@ export function ImageChatStudio() {
                 placeholder="输入提示词"
                 className="min-h-[88px] w-full resize-none bg-transparent px-2 py-1 text-[15px] leading-7 text-[color:var(--text-strong)] outline-none placeholder:text-[color:var(--text-dim)] sm:min-h-[96px] sm:text-base"
               />
+
+              <div className="flex items-center justify-end px-1">
+                <a
+                  href="https://opennana.com/awesome-prompt-gallery"
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={handlePromptGalleryClick}
+                  className="inline-flex min-h-8 items-center justify-center gap-1 rounded-full px-2 text-sm text-[color:var(--text-dim)] transition duration-200 hover:text-[color:var(--text-strong)]"
+                >
+                  提示词参考
+                  <svg viewBox="0 0 20 20" aria-hidden="true" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.7]">
+                    <path d="M7 5.75h7.25V13" />
+                    <path d="m12.75 6-6 6" />
+                    <path d="M13.25 10.5v3.75a1 1 0 0 1-1 1H5.75a1 1 0 0 1-1-1v-6.5a1 1 0 0 1 1-1H9.5" />
+                  </svg>
+                </a>
+              </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-wrap items-center gap-2">
@@ -880,6 +913,45 @@ export function ImageChatStudio() {
                 onClick={handleClearImageData}
               >
                 确认清理
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {promptGalleryNoticeOpen ? (
+        <div
+          className="fixed inset-0 z-[57] bg-[rgba(10,8,8,0.78)] backdrop-blur-sm"
+          role="presentation"
+          onClick={() => setPromptGalleryNoticeOpen(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label="提示词参考提醒"
+            onClick={(event) => event.stopPropagation()}
+            className="absolute inset-x-4 bottom-4 grid gap-3 rounded-[1.6rem] border border-[color:var(--line-soft)] bg-[color:var(--surface-panel)] px-4 py-4 shadow-[0_24px_64px_rgba(10,8,8,0.34)] sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-full sm:max-w-[520px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:px-5 sm:py-5"
+          >
+            <div className="text-[11px] uppercase tracking-[0.18em] text-[color:var(--text-dim)]">第三方参考</div>
+            <div className="text-sm leading-6 text-[color:var(--text-muted)]">
+              即将跳转到第三方生图提示词网站。这里只建议查看提示词参考，不建议操作。
+            </div>
+
+            <div className="flex items-center gap-4 text-sm">
+              <button
+                type="button"
+                className="text-[color:var(--text-dim)] transition hover:text-[color:var(--text-strong)]"
+                onClick={() => setPromptGalleryNoticeOpen(false)}
+              >
+                取消
+              </button>
+              <span className="h-3.5 w-px bg-[color:var(--line-soft)]" aria-hidden="true" />
+              <button
+                type="button"
+                className="font-medium text-[color:var(--text-strong)] transition hover:text-[color:var(--text-strong)]"
+                onClick={handleOpenPromptGallery}
+              >
+                继续前往
               </button>
             </div>
           </section>
