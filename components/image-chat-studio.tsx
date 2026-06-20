@@ -261,6 +261,7 @@ export function ImageChatStudio() {
   const [promptGalleryNoticeOpen, setPromptGalleryNoticeOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(localStorageKey);
@@ -459,11 +460,19 @@ export function ImageChatStudio() {
       item.resultImages.length > 0 ? `图片：\n${item.resultImages.join("\n")}` : ""
     ].filter(Boolean);
 
+    setActiveId("");
+    setPrompt(item.prompt);
+    setSize(item.size);
+    setModel(item.model);
+    setReferenceImages([...item.referenceImages]);
+    setPageError("");
+    window.setTimeout(() => textareaRef.current?.focus(), 0);
+
     try {
       await navigator.clipboard.writeText(lines.join("\n"));
-      showToast("对话已复制。");
+      showToast(item.referenceImages.length > 0 ? "已复制文字，并带入新对话。" : "已复制并带入新对话。");
     } catch {
-      showToast("复制对话失败，请检查浏览器权限。", "error");
+      showToast("已带入新对话。安卓浏览器通常只支持站内继续，不一定支持完整复制图片。");
     }
   }
 
@@ -694,6 +703,7 @@ export function ImageChatStudio() {
               ) : null}
 
               <textarea
+                ref={textareaRef}
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
                 rows={3}
