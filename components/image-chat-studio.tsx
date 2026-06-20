@@ -30,9 +30,17 @@ const starterPrompts = [
   "生成一张写实风格的咖啡馆夜景海报。"
 ];
 
+function createHistoryId() {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `history-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function createHistoryItem(prompt: string, size: string, model: ImageModel, referenceImages: string[]): HistoryItem {
   return {
-    id: crypto.randomUUID(),
+    id: createHistoryId(),
     prompt,
     size,
     model,
@@ -299,9 +307,7 @@ export function ImageChatStudio() {
     <main className="studio-shell">
       <aside className="studio-sidebar">
         <div className="sidebar-head">
-          <p className="eyebrow">历史记录</p>
-          <h1>画图工作台</h1>
-          <p className="sidebar-copy">本地保存最近的生成记录。</p>
+          <img className="sidebar-logo" src="/cat-f.png" alt="Logo" />
         </div>
 
         <button
